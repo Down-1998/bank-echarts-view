@@ -1,0 +1,889 @@
+:root {
+  /* 全局设计令牌，统一控制大屏背景、面板、文字与状态色。 */
+  font-family:
+    "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #e7eefc;
+  background:
+    radial-gradient(circle at top, rgba(32, 108, 194, 0.24), transparent 35%),
+    linear-gradient(180deg, #07111f 0%, #081522 40%, #050c16 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --panel-bg: linear-gradient(180deg, rgba(13, 26, 45, 0.9), rgba(7, 16, 31, 0.92));
+  --panel-border: rgba(112, 160, 221, 0.22);
+  --panel-glow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --copy: #9fb2ca;
+  --accent: #1ad5d1;
+  --warn: #ffd166;
+  --hot: #ff7a6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.screen-shell {
+  /* 最外层舞台负责提供全屏留白与绝对定位基准。 */
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.screen-backdrop {
+  /* 背景光效单独放在伪舞台层，避免污染实际内容布局。 */
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(92, 124, 255, 0.08), transparent 22%, transparent 78%, rgba(26, 213, 209, 0.08)),
+    radial-gradient(circle at 50% 30%, rgba(44, 103, 181, 0.16), transparent 32%);
+  pointer-events: none;
+}
+
+.chart-loading {
+  height: 100%;
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  color: #a9bfdc;
+  font-size: 14px;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  border: none;
+  background: rgba(3, 9, 18, 0.45);
+  /* backdrop-filter: blur(4px); */
+  cursor: pointer;
+}
+
+.branch-drawer {
+  /* 右侧抽屉承载地图点击后的分行钻取详情。 */
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  bottom: 20px;
+  width: min(420px, calc(100vw - 32px));
+  z-index: 20;
+  padding: 18px;
+  border: 1px solid rgba(112, 160, 221, 0.22);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(8, 19, 35, 0.96), rgba(5, 12, 23, 0.98));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(14px);
+  overflow: auto;
+  transform: translateX(32px);
+  opacity: 0;
+  animation: drawer-in 240ms ease forwards;
+}
+
+.branch-drawer-open {
+  z-index: 20;
+}
+
+.branch-drawer-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.branch-drawer-head p {
+  margin: 0 0 8px;
+  color: #7edee2;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.branch-drawer-head h3 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.branch-drawer-head span {
+  color: var(--copy);
+  font-size: 14px;
+}
+
+.drawer-close {
+  border: 1px solid rgba(123, 167, 222, 0.28);
+  background: rgba(14, 31, 53, 0.9);
+  color: #e7eefc;
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.drawer-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.drawer-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(106, 139, 182, 0.18);
+  background: rgba(12, 25, 43, 0.78);
+  overflow: hidden;
+}
+
+.drawer-card h4 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.drawer-card-wide {
+  min-height: 180px;
+}
+
+.drawer-item {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(106, 139, 182, 0.12);
+}
+
+.drawer-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.drawer-item strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.drawer-item p {
+  margin: 0 0 8px;
+  color: var(--copy);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.drawer-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: #dbe6f8;
+  font-size: 12px;
+}
+
+.drawer-empty {
+  color: var(--copy);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 顶部总览、指标、时间轴、主内容与底部台账保持同一层级。 */
+.dashboard-header,
+.stat-grid,
+.dashboard-grid,
+.timeline-strip,
+.bottom-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-end;
+  padding: 14px 18px 24px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #59dfe0;
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 46px);
+  letter-spacing: 0.04em;
+}
+
+.header-copy {
+  max-width: 760px;
+  margin: 10px 0 0;
+  color: var(--copy);
+  line-height: 1.7;
+}
+
+.header-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-meta span {
+  padding: 10px 14px;
+  border: 1px solid rgba(89, 123, 168, 0.24);
+  background: rgba(8, 22, 40, 0.72);
+  border-radius: 999px;
+  color: #c8d8ee;
+  backdrop-filter: blur(8px);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.timeline-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.timeline-step {
+  position: relative;
+  padding: 16px 18px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(109, 143, 187, 0.18);
+  background: rgba(7, 19, 34, 0.72);
+  overflow: hidden;
+}
+
+.timeline-step strong {
+  display: block;
+  font-size: 15px;
+}
+
+.timeline-step i {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: rgba(112, 160, 221, 0.2);
+}
+
+.timeline-step.completed i {
+  background: linear-gradient(90deg, #1ad5d1, #5c7cff);
+}
+
+.timeline-step.active {
+  box-shadow: 0 0 0 1px rgba(255, 209, 102, 0.18), 0 18px 42px rgba(0, 0, 0, 0.24);
+}
+
+.timeline-step.active i {
+  background: linear-gradient(90deg, #ffd166, #ff9f43);
+}
+
+.timeline-time {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #8eb5d8;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.stat-card,
+.section-card {
+  /* 卡片体系共用同一套面板边框、辉光和玻璃化背景。 */
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-glow);
+}
+
+.stat-card::before,
+.section-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(26, 213, 209, 0.72), transparent 72%);
+}
+
+.section-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, transparent 0%, rgba(92, 124, 255, 0.06) 35%, transparent 65%),
+    linear-gradient(180deg, rgba(26, 213, 209, 0.04), transparent 24%);
+}
+
+.stat-card {
+  padding: 20px 22px;
+}
+
+.stat-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-kicker {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7fe4e8;
+}
+
+.stat-trend {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.stat-trend.up {
+  color: #75f0b5;
+}
+
+.stat-trend.down {
+  color: #ff9589;
+}
+
+.stat-value {
+  display: block;
+  margin-top: 14px;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.stat-label {
+  margin: 10px 0 6px;
+  font-size: 16px;
+}
+
+.stat-note {
+  margin: 0;
+  color: var(--copy);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.dashboard-grid {
+  /* 主体采用“左侧概览 + 中部地图与洞察”的生产型双列布局。 */
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.dashboard-column {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboard-side {
+  align-self: start;
+}
+
+.dashboard-main {
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.insight-grid {
+  /* 地图下方的趋势与预警保持并列，压缩中部纵向空白。 */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.section-card {
+  padding: 18px 18px 14px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.section-head p {
+  margin: 8px 0 0;
+  color: var(--copy);
+  font-size: 13px;
+}
+
+.section-accent {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(26, 213, 209, 0.55), rgba(26, 213, 209, 0.02) 70%);
+}
+
+.map-panel {
+  padding-bottom: 6px;
+}
+
+.map-stage {
+  position: relative;
+}
+
+.map-hover-card {
+  /* 悬浮卡在大屏上覆盖地图，窄屏时会降级为普通文案块。 */
+  position: absolute;
+  top: 22px;
+  right: 18px;
+  width: 220px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(123, 167, 222, 0.22);
+  background: rgba(6, 17, 31, 0.86);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+}
+
+.map-hover-card p {
+  margin: 0 0 10px;
+  color: #7fcfd9;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.map-hover-card strong {
+  display: block;
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+.map-hover-card span {
+  display: block;
+  color: #e7f1ff;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.map-hover-card small {
+  display: block;
+  color: var(--copy);
+  line-height: 1.6;
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 8px;
+  color: #c7d8ef;
+  font-size: 13px;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.origin {
+  background: #1ad5d1;
+}
+
+.legend-dot.route {
+  background: #ffd166;
+}
+
+.legend-dot.target {
+  background: #82f7ff;
+}
+
+.risk-list {
+  /* 风险摘要使用纵向信息卡，便于快速扫视等级与说明。 */
+  display: grid;
+  gap: 14px;
+}
+
+.risk-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(10, 24, 43, 0.72);
+  border: 1px solid rgba(106, 139, 182, 0.18);
+}
+
+.risk-item strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.risk-item p {
+  margin: 0;
+  color: var(--copy);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.risk-badge {
+  flex: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.risk-high {
+  color: #ffb0a6;
+  background: rgba(255, 122, 107, 0.18);
+}
+
+.risk-medium {
+  color: #ffe2a8;
+  background: rgba(255, 209, 102, 0.16);
+}
+
+.risk-low {
+  color: #99efdd;
+  background: rgba(26, 213, 209, 0.14);
+}
+
+.alert-feed {
+  display: grid;
+  gap: 12px;
+}
+
+.alert-marquee {
+  /* 预警播报条模拟监控屏滚动消息带。 */
+  overflow: hidden;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(106, 139, 182, 0.16);
+  background: rgba(8, 20, 36, 0.82);
+}
+
+.alert-track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  padding: 12px;
+  animation: alert-marquee 26s linear infinite;
+}
+
+.alert-chip {
+  width: 260px;
+  flex: none;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(14, 29, 51, 0.92);
+  border: 1px solid rgba(100, 135, 178, 0.16);
+}
+
+.alert-chip strong {
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 14px;
+}
+
+.alert-chip p,
+.alert-chip time {
+  margin: 0;
+  color: var(--copy);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.alert-chip time {
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.alert-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(10, 24, 43, 0.72);
+  border: 1px solid rgba(106, 139, 182, 0.18);
+}
+
+.alert-main strong {
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.alert-main p,
+.alert-row time {
+  margin: 0;
+  color: var(--copy);
+  font-size: 12px;
+}
+
+.alert-row time {
+  white-space: nowrap;
+}
+
+.alert-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.alert-level.critical {
+  color: #ffd0cb;
+  background: rgba(255, 87, 87, 0.18);
+}
+
+.alert-level.high {
+  color: #ffe0ac;
+  background: rgba(255, 209, 102, 0.16);
+}
+
+.alert-level.medium {
+  color: #b7ebff;
+  background: rgba(92, 124, 255, 0.16);
+}
+
+.bottom-grid {
+  margin-top: 18px;
+}
+
+.ledger-panel {
+  padding-bottom: 18px;
+}
+
+.ledger-table {
+  /* 台账区域使用近表格布局，兼顾大屏密度与移动端折叠能力。 */
+  display: grid;
+  gap: 10px;
+}
+
+.ledger-head,
+.ledger-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1.2fr 1.2fr 1fr 0.8fr 0.7fr 0.7fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.ledger-head {
+  padding: 0 10px 12px;
+  color: #89a6c6;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ledger-row {
+  padding: 14px 10px;
+  border-radius: 16px;
+  background: rgba(10, 24, 43, 0.72);
+  border: 1px solid rgba(106, 139, 182, 0.18);
+  font-size: 13px;
+  color: #dbe6f8;
+}
+
+.ledger-status {
+  display: inline-flex;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ledger-status.completed {
+  color: #9df0c1;
+  background: rgba(70, 199, 124, 0.16);
+}
+
+.ledger-status.review {
+  color: #ffe2a8;
+  background: rgba(255, 209, 102, 0.16);
+}
+
+.ledger-status.routing {
+  color: #b7ebff;
+  background: rgba(92, 124, 255, 0.16);
+}
+
+@keyframes alert-marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.loading-state {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  color: #dcebff;
+}
+
+.error-state {
+  color: #ffb4ac;
+}
+
+@media (max-width: 1440px) {
+  /* 中等分辨率下先压缩左侧辅助列宽。 */
+  .dashboard-grid {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1180px) {
+  /* 平板尺寸切为纵向堆叠，保证地图和预警仍可完整阅读。 */
+  .screen-shell {
+    padding: 16px;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .timeline-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-hover-card {
+    position: static;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .branch-drawer {
+    top: auto;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+    max-height: 72vh;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-meta {
+    justify-content: flex-start;
+  }
+
+  .ledger-head,
+  .ledger-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  /* 手机端进一步简化网格与台账，优先保证信息可读性。 */
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-header {
+    padding-inline: 6px;
+  }
+
+  .section-card,
+  .stat-card {
+    border-radius: 18px;
+  }
+
+  .ledger-head {
+    display: none;
+  }
+
+  .ledger-row {
+    grid-template-columns: 1fr;
+  }
+
+  .alert-row,
+  .risk-item {
+    flex-direction: column;
+  }
+}
