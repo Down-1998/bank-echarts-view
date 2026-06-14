@@ -1,4 +1,5 @@
 import type { PropsWithChildren } from 'react';
+import styles from './SectionCard.module.css';
 
 type SectionCardProps = PropsWithChildren<{
   title: string;
@@ -13,13 +14,13 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <section className={`section-card ${className}`.trim()}>
-      <div className="section-head">
+    <section className={`${styles.card} ${className}`.trim()}>
+      <div className={styles.head}>
         <div>
-          <h2>{title}</h2>
-          <p>{subtitle}</p>
+          <h2 className={styles.title}>{title}</h2>
+          <p className={styles.subtitle}>{subtitle}</p>
         </div>
-        <span className="section-accent" />
+        <span className={styles.accent} />
       </div>
       {children}
     </section>

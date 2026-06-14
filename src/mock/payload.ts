@@ -22,7 +22,6 @@ type ScatterPoint = {
   value: [number, number, number];
 };
 
-// 地图城市坐标表，用于航线起终点和散点热度定位。
 const cityMap: Record<string, GeoCity> = {
   北京: { name: '北京', value: [116.4074, 39.9042, 0] },
   上海: { name: '上海', value: [121.4737, 31.2304, 0] },
@@ -36,7 +35,6 @@ const cityMap: Record<string, GeoCity> = {
   重庆: { name: '重庆', value: [106.5516, 29.563, 0] },
 };
 
-// 左侧柱状图默认展示的重点分行净流入规模。
 const branches = [
   { name: '上海', amount: 12.8 },
   { name: '深圳', amount: 11.1 },
@@ -46,11 +44,9 @@ const branches = [
   { name: '成都', amount: 6.8 },
 ];
 
-// 中部趋势图默认展示的小时级资金处理曲线。
 const trendHours = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
 const trendValues = [3.6, 4.2, 5.1, 8.4, 9.8, 10.4, 8.1, 6.7];
 
-// 左侧饼图默认展示的业务渠道结构。
 const channelMix: PieSeriesItem[] = [
   { name: '同业划拨', value: 38 },
   { name: '企业代发', value: 24 },
@@ -59,7 +55,6 @@ const channelMix: PieSeriesItem[] = [
   { name: '托管清算', value: 8 },
 ];
 
-// 地图航线模拟全国分支机构之间的资金清算往来。
 const routes: RouteItem[] = [
   { from: '北京', to: '上海', amount: 3.8 },
   { from: '北京', to: '广州', amount: 2.6 },
@@ -71,7 +66,6 @@ const routes: RouteItem[] = [
   { from: '上海', to: '南京', amount: 1.2 },
 ];
 
-// 顶部时间轴模拟日内清算作业编排进度。
 const timeline: TimelineStep[] = [
   { time: '08:00', title: '日初头寸检查完成', status: 'completed' },
   { time: '10:30', title: '司库资金调拨窗口开启', status: 'completed' },
@@ -80,7 +74,6 @@ const timeline: TimelineStep[] = [
   { time: '19:00', title: '日终备付金再平衡待启动', status: 'pending' },
 ];
 
-// 预警播报区使用的模拟监控事件。
 const alerts: AlertItem[] = [
   {
     id: 'ALT-901',
@@ -112,7 +105,6 @@ const alerts: AlertItem[] = [
   },
 ];
 
-// 底部台账与抽屉详情共用的模拟交易流水。
 const transactions: TransactionItem[] = [
   {
     id: 'TXN20260612001',
@@ -135,7 +127,7 @@ const transactions: TransactionItem[] = [
   {
     id: 'TXN20260612003',
     branch: '深圳自贸区分行',
-    counterparty: '南湾进出口有限公司',
+    counterparty: '南港进出口有限公司',
     channel: '跨境贸易',
     amount: 2.48,
     status: 'Review',
@@ -162,13 +154,12 @@ const transactions: TransactionItem[] = [
 ];
 
 function buildSummary(): SummaryMetric[] {
-  // 顶部四张指标卡统一从这里出数，便于后续替换为真实接口字段。
   return [
     {
       tag: 'Clearing',
       label: '当日清算总量',
       value: 286.42,
-      unit: 'B',
+      unit: '亿',
       trend: 8.4,
       decimals: 2,
       note: '公司金融与同业资金清算总额',
@@ -177,7 +168,7 @@ function buildSummary(): SummaryMetric[] {
       tag: 'Liquidity',
       label: '日间可调拨资金',
       value: 94.7,
-      unit: 'B',
+      unit: '亿',
       trend: 3.2,
       decimals: 1,
       note: '当前可用于跨机构调拨的头寸余额',
@@ -203,7 +194,6 @@ function buildSummary(): SummaryMetric[] {
 }
 
 function createBarOption(): EChartsOption {
-  // 横向柱状图用于展示重点分行资金净流入排名。
   return {
     grid: { left: 10, right: 12, top: 32, bottom: 8, containLabel: true },
     tooltip: {
@@ -248,7 +238,6 @@ function createBarOption(): EChartsOption {
 }
 
 function createLineOption(): EChartsOption {
-  // 面积折线图强调日内资金处理波峰与波谷。
   return {
     grid: { left: 12, right: 14, top: 36, bottom: 16, containLabel: true },
     tooltip: {
@@ -295,7 +284,6 @@ function createLineOption(): EChartsOption {
 }
 
 function createPieOption(): EChartsOption {
-  // 环形饼图用于展示渠道结构占比。
   return {
     tooltip: {
       trigger: 'item',
@@ -330,7 +318,6 @@ function createPieOption(): EChartsOption {
 }
 
 function createMapOption(): EChartsOption {
-  // 将路由交易转换为地图可直接消费的航线段与城市散点数据。
   const routeLines = routes
     .map((item) => {
       const from = cityMap[item.from];
@@ -452,20 +439,16 @@ function createMapOption(): EChartsOption {
 }
 
 export function buildDashboardPayload(): DashboardPayload {
-  // 响应结构故意贴近真实后端，方便后续平滑切换到正式接口。
   return {
     header: {
       latencyMs: 183,
       successRate: 99.86,
     },
-    // 顶部概览指标。
     summary: buildSummary(),
-    // 地图总金额与航线基础数据。
     map: {
       totalAmount: 28642000000,
       routes,
     },
-    // 左侧风险摘要的全局默认数据。
     risks: [
       {
         name: '大额资金复核',
@@ -483,13 +466,9 @@ export function buildDashboardPayload(): DashboardPayload {
         level: 'Low',
       },
     ],
-    // 顶部流程时间轴。
     timeline,
-    // 中部实时预警播报。
     alerts,
-    // 底部台账与抽屉关联交易。
     transactions,
-    // 页面首屏直接使用的图表配置。
     charts: {
       bar: createBarOption(),
       line: createLineOption(),

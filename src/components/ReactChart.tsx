@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { EChartsOption } from 'echarts';
 import type { EChartsType } from 'echarts/core';
+import styles from './ReactChart.module.css';
 
 type ReactChartProps = {
   option: EChartsOption;
@@ -19,7 +20,6 @@ export function ReactChart({ option, height, onEvents }: ReactChartProps) {
     let mounted = true;
 
     async function loadChartRuntime() {
-      // 仅在图表组件真正渲染时再加载运行时，降低首屏打包体积。
       const [{ default: ReactEChartsCore }, echarts] = await Promise.all([
         import('echarts-for-react/lib/core'),
         import('echarts'),
@@ -41,7 +41,7 @@ export function ReactChart({ option, height, onEvents }: ReactChartProps) {
   }, []);
 
   if (!ChartComponent || !echartsModule) {
-    return <div className="chart-loading">图表加载中...</div>;
+    return <div className={styles.loading}>图表加载中...</div>;
   }
 
   return (
