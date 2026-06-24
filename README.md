@@ -190,4 +190,8 @@ http://127.0.0.1:5173
 ```bash
 npx vite --host 127.0.0.1 --port 5173
 ```
+## 页面展示
+![alt text](showImage/image.png)
+![alt text](showImage/image2.png)
+![alt text](showImage/image3.png)
 
